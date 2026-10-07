@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Calculator (React) - Nguyễn Tiến Hoàng</title>
+    <!-- React & Babel CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .calculator {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .title {
+            color: #ccc;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .display {
+            background-color: #222;
+            color: white;
+            font-size: 2rem;
+            text-align: right;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            min-height: 60px;
+            word-break: break-all;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-btn {
+            padding: 16px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.15s, transform 0.05s;
+        }
+
+        .calc-btn:hover {
+            opacity: 0.85;
+        }
+
+        .calc-btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="index.html" class="back-link">← Quay về</a>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // 1. Component Display hiển thị kết quả
+        function Display({ value }) {
+            return (
+                <div className="display" id="display">
+                    {value || '0'}
+                </div>
+            );
+        }
+
+        // 2. Component Button nhận props nhãn (label / nhan), màu (color / mau)
+        function Button({ label, color, nhan, mau, onClick, className = '' }) {
+            const text = label !== undefined ? label : nhan;
+            const bg = color || mau || '#555';
+
+            return (
+                <button
+                    type="button"
+                    className={`calc-btn ${className}`}
+                    style={{ backgroundColor: bg }}
+                    onClick={() => onClick(text)}
+                >
+                    {text}
+                </button>
+            );
+        }
+
+        // Main Virtual Calculator Component
+        function VirtualCalculator() {
+            // State lưu biểu thức hiện tại
+            const [expression, setExpression] = useState('');
+
+            // Xử lý nhập số và dấu chấm
+            const handleDigit = (char) => {
+                setExpression((prev) => {
+                    if (prev === '0' && char !== '.') return char;
+                    if (prev === 'Lỗi') return char;
+                    return prev + char;
+                });
+            };
+
+            // Xử lý các toán tử: +, -, x, ÷
+            const handleOperator = (op) => {
+                setExpression((prev) => {
+                    if (!prev || prev === 'Lỗi') {
+                        return op === '-' ? '-' : '';
+                    }
+                    const lastChar = prev.slice(-1);
+                    if (['+', '-', 'x', '÷'].includes(lastChar)) {
+                        return prev.slice(0, -1) + op;
+                    }
+                    return prev + op;
+                });
+            };
+
+            // Xóa biểu thức: C
+            const handleClear = () => {
+                setExpression('');
+            };
+
+            // Tính toán kết quả: =
+            const handleCalculate = () => {
+                setExpression((prev) => {
+                    if (!prev || prev === 'Lỗi') return '';
+
+                    try {
+                        let expr = prev.replace(/x/g, '*').replace(/÷/g, '/');
+
+                        // Bắt lỗi chia cho 0
+                        if (/\/0(?![0-9])/.test(expr)) {
+                            return 'Lỗi';
+                        }
+
+                        // Chỉ chấp nhận biểu thức toán học hợp lệ
+                        if (!/^[0-9+\-*/.() ]+$/.test(expr)) {
+                            return 'Lỗi';
+                        }
+
+                        const calcResult = Function('"use strict"; return (' + expr + ')')();
+
+                        if (!isFinite(calcResult) || isNaN(calcResult)) {
+                            return 'Lỗi';
+                        }
+
+                        const rounded = Math.round(calcResult * 1000000000) / 1000000000;
+                        return rounded.toString();
+                    } catch (err) {
+                        return 'Lỗi';
+                    }
+                });
+            };
+
+            return (
+                <div className="calculator">
+                    <h2 className="title">Virtual Calculator (React)</h2>
+
+                    {/* Component Display */}
+                    <Display value={expression} />
+
+                    {/* Lưới các Component Button nhận props nhãn, màu */}
+                    <div className="buttons">
+                        {/* Hàng 1: C, (, ), ÷ */}
+                        <Button label="C" color="#e74c3c" onClick={handleClear} />
+                        <Button label="(" color="#7f8c8d" onClick={handleDigit} />
+                        <Button label=")" color="#7f8c8d" onClick={handleDigit} />
+                        <Button label="÷" color="#f39c12" onClick={handleOperator} />
+
+                        {/* Hàng 2: 7, 8, 9, x */}
+                        <Button label="7" color="#555" onClick={handleDigit} />
+                        <Button label="8" color="#555" onClick={handleDigit} />
+                        <Button label="9" color="#555" onClick={handleDigit} />
+                        <Button label="x" color="#f39c12" onClick={handleOperator} />
+
+                        {/* Hàng 3: 4, 5, 6, - */}
+                        <Button label="4" color="#555" onClick={handleDigit} />
+                        <Button label="5" color="#555" onClick={handleDigit} />
+                        <Button label="6" color="#555" onClick={handleDigit} />
+                        <Button label="-" color="#f39c12" onClick={handleOperator} />
+
+                        {/* Hàng 4: 1, 2, 3, + */}
+                        <Button label="1" color="#555" onClick={handleDigit} />
+                        <Button label="2" color="#555" onClick={handleDigit} />
+                        <Button label="3" color="#555" onClick={handleDigit} />
+                        <Button label="+" color="#f39c12" onClick={handleOperator} />
+
+                        {/* Hàng 5: 0, ., = */}
+                        <Button label="0" color="#555" className="btn-zero" onClick={handleDigit} />
+                        <Button label="." color="#555" onClick={handleDigit} />
+                        <Button label="=" color="#27ae60" onClick={handleCalculate} />
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<VirtualCalculator />);
+    </script>
+</body>
+
+</html>

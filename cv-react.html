@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang CV bằng React - Nguyễn Tiến Hoàng</title>
+    <!-- React & Babel CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #bfdbf7;
+            color: #04052e;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #a31621;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            color: #a31621;
+            text-align: center;
+            border-bottom: 2px solid #db222a;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #1f7a8c;
+            margin-top: 30px;
+        }
+
+        img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 15px;
+            border: 3px solid #1f7a8c;
+            object-fit: cover;
+        }
+
+        .gioi-thieu {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        ul,
+        ol {
+            padding-left: 25px;
+            line-height: 1.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #1f7a8c;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #04052e;
+            color: #bfdbf7;
+        }
+
+        tr:nth-child(even) {
+            background-color: #d9eaf7;
+        }
+
+        a {
+            color: #a31621;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #1f7a8c;
+            border-top: 1px solid #1f7a8c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="index.html" class="back-link">← Quay về</a>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ==========================================
+        // DỮ LIỆU ĐẶT TRONG MẢNG (KỸ NĂNG & DỰ ÁN)
+        // ==========================================
+        const skillsData = [
+            "C/C++",
+            "Git cơ bản",
+            "Docker / Linux command line",
+            "Python",
+            "Huấn luyện các loại mô hình Computer Vision",
+            "Thao tác, nghiên cứu và làm sạch dữ liệu"
+        ];
+
+        const projectsData = [
+            { name: "CNS AI face model tester", year: "2025" },
+            { name: "Web cá nhân", year: "2026" }
+        ];
+
+        const educationData = [
+            { period: "2022 – 2025", desc: "Tốt nghiệp THPT Lào Cai" },
+            { period: "2025 – Nay", desc: "Sinh viên PTIT ngành AIoT" },
+            { period: "2025 – Nay", desc: "CTV lab CNS RIPT" }
+        ];
+
+        // ==========================================
+        // CÁC COMPONENT REACT (Ít nhất 4 component)
+        // ==========================================
+
+        // Component 1: ProfileHeader (Phần giới thiệu bản thân & avatar)
+        function ProfileHeader({ avatarSrc, name, alias, major, school, email, location }) {
+            return (
+                <div className="gioi-thieu">
+                    <img src={avatarSrc} alt="Ảnh đại diện" />
+                    <h1>{name}</h1>
+                    <p>Xin chào! Tôi là <strong>{name}</strong> (<b>{alias}</b>), sinh viên ngành{' '}
+                        <span style={{ color: '#a31621' }}><b>{major}</b></span>.
+                    </p>
+                    <p><i>Đang theo học tại {school}.</i></p>
+                    <p><u>Email</u>: {email} | <small>{location}</small></p>
+                </div>
+            );
+        }
+
+        // Component 2: Section (Dùng children để bọc nội dung động)
+        function Section({ title, children }) {
+            return (
+                <section>
+                    <h2>{title}</h2>
+                    {children}
+                </section>
+            );
+        }
+
+        // Component 3: SkillList (Nhận mảng kỹ năng qua props)
+        function SkillList({ skills }) {
+            return (
+                <ul>
+                    {skills.map((skill, index) => (
+                        <li key={index}>{skill}</li>
+                    ))}
+                </ul>
+            );
+        }
+
+        // Component 4: ProjectTable (Nhận mảng dự án qua props)
+        function ProjectTable({ projects }) {
+            return (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tên dự án</th>
+                            <th>Năm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {projects.map((project, index) => (
+                            <tr key={index}>
+                                <td>{project.name}</td>
+                                <td>{project.year}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            );
+        }
+
+        // Component 5: Footer (Bản quyền tác giả)
+        function Footer({ author, year }) {
+            return (
+                <footer>
+                    <p>&copy; {year} {author}</p>
+                </footer>
+            );
+        }
+
+        // ==========================================
+        // MAIN APP COMPONENT
+        // ==========================================
+        function App() {
+            return (
+                <div>
+                    {/* Component 1: Giới thiệu */}
+                    <ProfileHeader
+                        avatarSrc="avatar.jpg"
+                        name="Nguyễn Tiến Hoàng"
+                        alias="Nayn"
+                        major="Trí tuệ nhân tạo vạn vật (AIoT)"
+                        school="Học viện Công nghệ Bưu chính Viễn thông (PTIT)"
+                        email="hoang.iq2372007@gmail.com"
+                        location="Thủ đô Hà Nội, Việt Nam"
+                    />
+
+                    {/* Component 2 (Section dùng children) + Component 3 (SkillList nhận props mảng) */}
+                    <Section title="Kỹ năng">
+                        <SkillList skills={skillsData} />
+                    </Section>
+
+                    {/* Section dùng children */}
+                    <Section title="Quá trình học tập">
+                        <ol>
+                            {educationData.map((edu, idx) => (
+                                <li key={idx}>
+                                    <strong>{edu.period}:</strong> {edu.desc}
+                                </li>
+                            ))}
+                        </ol>
+                    </Section>
+
+                    {/* Component 2 (Section dùng children) + Component 4 (ProjectTable nhận props mảng) */}
+                    <Section title="Dự án đã làm">
+                        <ProjectTable projects={projectsData} />
+                    </Section>
+
+                    {/* Section dùng children */}
+                    <Section title="Cuộc thi đã tham gia">
+                        <ul>
+                            <li>Olimpic AI PTIT - 2026</li>
+                        </ul>
+                    </Section>
+
+                    {/* Section dùng children */}
+                    <Section title="Giải thưởng đã nhận">
+                        <ul>
+                            <li>Giải nhì HSG Tin học tỉnh Lào Cai - 2025</li>
+                        </ul>
+                    </Section>
+
+                    {/* Section dùng children */}
+                    <Section title="Liên kết">
+                        <p>github: <a href="https://github.com/NaynCantDev" target="_blank" rel="noreferrer">NaynCantDev</a></p>
+                        <p>kaggle: <a href="https://www.kaggle.com/naynthedev" target="_blank" rel="noreferrer">Naynthepromt</a></p>
+                        <p>facebook: <a href="https://www.facebook.com/hoangdayanhem/" target="_blank" rel="noreferrer">Nguyễn Tiến Hoàng</a></p>
+                    </Section>
+
+                    {/* Component 5: Footer */}
+                    <Footer author="Nguyễn Tiến Hoàng (Nayn)" year="2026" />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>
